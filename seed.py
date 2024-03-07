@@ -1,8 +1,7 @@
+from models import session, Group, Student, Teacher, Discipline, Grade
 from faker import Faker
-from sqlalchemy import create_engine, Column, Integer, String, Date, ForeignKey
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.orm import declarative_base
 import random
+from datetime import datetime
 
 GROUPS = ['PyWeb20-1', 'PyWeb20-2', 'PyWeb20-3']
 DISCIPLINES = [
@@ -20,56 +19,23 @@ NUMBER_STUDENTS = 50
 NUMBER_TEACHERS = 5
 NUMBER_GRADES = 20
 
-Base = declarative_base()
-
-
-class Group(Base):
-    __tablename__ = 'groups'
-    id = Column(Integer, primary_key=True)
-    group_name = Column(String, unique=True)
-    students = relationship("Student", backref="group")
-
-
-class Student(Base):
-    __tablename__ = 'students'
-    id = Column(Integer, primary_key=True)
-    full_name = Column(String)
-    group_id = Column(Integer, ForeignKey('groups.id'))
-
-
-class Teacher(Base):
-    __tablename__ = 'teachers'
-    id = Column(Integer, primary_key=True)
-    full_name = Column(String)
-    disciplines = relationship("Discipline", backref="teacher")
-
-
-class Discipline(Base):
-    __tablename__ = 'disciplines'
-    id = Column(Integer, primary_key=True)
-    discipline_name = Column(String, unique=True)
-    teacher_id = Column(Integer, ForeignKey('teachers.id'))
-
-
-class Grade(Base):
-    __tablename__ = 'grades'
-    id = Column(Integer, primary_key=True)
-    student_id = Column(Integer, ForeignKey('students.id'))
-    discipline_id = Column(Integer, ForeignKey('disciplines.id'))
-    grade = Column(Integer)
-    grade_date = Column(Date)
-    student = relationship("Student", backref="grades")
-    discipline = relationship("Discipline", backref="grades")
-
-
-# Connect to the database and create tables
-engine = create_engine('sqlite:///university_database.db')
-Base.metadata.create_all(engine)
-
-Session = sessionmaker(bind=engine)
-session = Session()
-
 faker = Faker()
+
+
+def generate_date():
+    '''
+    Function for generating dates within an academic year
+    '''
+    # Generate academic year date range
+    today = datetime.now()
+    # If we passed June, the academic year starts this year in September
+    if today.month > 6:
+        start_date = datetime(today.year, 9, 1)
+    else:  # Otherwise, the academic year started last September
+        start_date = datetime(today.year - 1, 9, 1)
+
+    return faker.date_between(start_date, today)
+
 
 # Add groups
 for group_name in GROUPS:
@@ -83,36 +49,48 @@ for _ in range(NUMBER_TEACHERS):
     )
     session.add(teacher)
 
+session.commit()
+
 # Add disciplines
-for discipline in DISCIPLINES:
+teachers = session.query(Teacher).all()
+
+for discipline_name in DISCIPLINES:
     discipline = Discipline(
-        discipline_name=discipline,
-        teacher_id=random.randint(1, NUMBER_TEACHERS)
-    )
+        discipline_name=discipline_name,
+        teacher_id=random.choice(teachers).id)
     session.add(discipline)
 
 session.commit()
 
 # Add students
+groups = session.query(Group).all()
+
 for _ in range(NUMBER_STUDENTS):
     student = Student(
-        full_name=faker.unique.name(),
-        group_id=random.randint(1, len(GROUPS))
-    )
+        full_name=faker.name(),
+        group_id=random.choice(groups).id)
     session.add(student)
 
 session.commit()
 
 # Add grades
-for _ in range(NUMBER_STUDENTS * NUMBER_GRADES):
-    grade = Grade(
-        student_id=random.randint(1, NUMBER_STUDENTS),
-        discipline_id=random.randint(1, len(DISCIPLINES)),
-        grade=random.randint(1, 5),
-        grade_date=faker.date_between(start_date="-1y", end_date="today")
-    )
-    session.add(grade)
+students = session.query(Student).all()
+disciplines = session.query(Discipline).all()
+
+for student in students:
+    total_grades = random.randint(5, 20)
+    for _ in range(total_grades):
+        discipline = random.choice(disciplines)
+        grade = Grade(
+            student_id=student.id,
+            discipline_id=discipline.id,
+            grade=random.randint(1, 5),
+            grade_date=generate_date()
+        )
+        session.add(grade)
 
 session.commit()
 
 session.close()
+
+print("Database has been seeded.")
