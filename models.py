@@ -2,10 +2,18 @@ from sqlalchemy import create_engine, Column, Integer, String, Date, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
+# Base = declarative_base()
+
+SQLALCHEMY_DATABASE_URL = 'sqlite:///university_database.db'
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 Base = declarative_base()
 
 # Connect to the database
-engine = create_engine('sqlite:///university_database.db')
+# engine = create_engine('sqlite:///university_database.db')
 Session = sessionmaker(bind=engine)
 session = Session()
 
