@@ -7,7 +7,9 @@ def select_1():
     query = session.query(
         Student.full_name,
         func.round(func.avg(Grade.grade), 2).label('average_grade')
-    ).join(Grade).group_by(Student.id).order_by(func.avg(Grade.grade).desc()).limit(5)
+    ).join(Grade).group_by(Student.id)\
+        .order_by(func.avg(Grade.grade).desc())\
+        .limit(5)
     return query.all()
 
 
@@ -18,7 +20,9 @@ def select_2():
         Discipline.discipline_name,
         Student.full_name,
         func.round(func.avg(Grade.grade), 2).label('average_grade')
-    ).select_from(Student).join(Grade).join(Discipline).filter(Discipline.id == discipline_id).group_by(Student.id).order_by(func.avg(Grade.grade).desc()).first()
+    ).select_from(Student).join(Grade).join(Discipline).\
+        filter(Discipline.id == discipline_id).group_by(Student.id).\
+        order_by(func.avg(Grade.grade).desc()).first()
     return query
 
 
@@ -29,7 +33,9 @@ def select_3():
         Discipline.discipline_name,
         Group.group_name,
         func.round(func.avg(Grade.grade), 2).label('average_grade')
-    ).join(Grade).join(Student).join(Group).filter(Discipline.id == discipline_id).group_by(Group.id).order_by(func.avg(Grade.grade).desc())
+    ).join(Grade).join(Student).join(Group)\
+        .filter(Discipline.id == discipline_id)\
+        .group_by(Group.id).order_by(func.avg(Grade.grade).desc())
     return query.all()
 
 
@@ -116,7 +122,8 @@ def select_9():
 
 
 def select_10():
-    # Find a list of courses that a specific teacher teaches to a specific student.
+    # Find a list of courses that a specific teacher teaches
+    # to a specific student.
     student_id = 15  # Example student ID
     teacher_id = 1  # Example teacher ID
     query = session.query(
@@ -133,18 +140,48 @@ def select_10():
     return query.all()
 
 
+def select_11():
+    # Find the average grade that a given teacher gives
+    # to a particular student.
+    student_id = 25  # Example student ID
+    teacher_id = 5   # Example teacher ID
+    query = session.query(
+        Teacher.full_name,
+        Student.full_name,
+        func.round(func.avg(Grade.grade), 2).label('average_grade')
+    ).select_from(Grade)\
+        .join(Student, Grade.student_id == Student.id)\
+        .join(Discipline, Grade.discipline_id == Discipline.id)\
+        .join(Teacher, Discipline.teacher_id == Teacher.id)\
+        .filter(Student.id == student_id, Teacher.id == teacher_id)\
+        .group_by(Student.id, Teacher.id)
+
+    return query.all()
+
+
+def select_12():
+    # Find the grades of students in a particular group
+    # for a given subject in the last class.
+    group_id = 3  # Example group ID
+    discipline_id = 1  # Example discipline ID
+    query = session.query(
+        Group.group_name,
+        Discipline.discipline_name,
+        Student.full_name,
+        Grade.grade,
+        func.max(Grade.grade_date).label('date_of_last_grade')
+    ).select_from(Grade)\
+        .join(Student, Grade.student_id == Student.id)\
+        .join(Group, Student.group_id == Group.id)\
+        .join(Discipline, Grade.discipline_id == Discipline.id)\
+        .filter(Group.id == group_id, Discipline.id == discipline_id)\
+        .group_by(Student.id)\
+        .order_by(Student.full_name)
+
+    return query.all()
+
 
 # Приклад виклику функції
 if __name__ == "__main__":
-    result = select_10()
+    result = select_12()
     print(result)
-
-    # results = select_7()
-    # formatted_results = [
-    #     (discipline_name, group_name, full_name, grade, grade_date.strftime('%d-%m-%Y'))
-    #     for discipline_name, group_name, full_name, grade, grade_date in results
-    # ]
-
-    # # Вивід відформатованих результатів
-    # for result in formatted_results:
-    #     print(result)
