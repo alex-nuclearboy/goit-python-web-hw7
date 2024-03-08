@@ -21,12 +21,18 @@ class Group(Base):
     group_name = Column(String, unique=True)
     students = relationship("Student", backref="group")
 
+    def __str__(self):
+        return self.group_name
+
 
 class Student(Base):
     __tablename__ = 'students'
     id = Column(Integer, primary_key=True)
     full_name = Column(String)
     group_id = Column(Integer, ForeignKey('groups.id'))
+
+    def __str__(self):
+        return self.full_name
 
 
 class Teacher(Base):
@@ -35,12 +41,18 @@ class Teacher(Base):
     full_name = Column(String)
     disciplines = relationship("Discipline", backref="teacher")
 
+    def __str__(self):
+        return self.full_name
+
 
 class Discipline(Base):
     __tablename__ = 'disciplines'
     id = Column(Integer, primary_key=True)
     discipline_name = Column(String, unique=True)
     teacher_id = Column(Integer, ForeignKey('teachers.id'))
+
+    def __str__(self):
+        return self.discipline_name
 
 
 class Grade(Base):
