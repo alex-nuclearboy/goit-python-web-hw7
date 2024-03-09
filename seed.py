@@ -80,9 +80,6 @@ def create_teachers():
     session.commit()
 
 
-# teachers = session.query(Teacher).all()
-
-
 def create_disciplines():
     """
     Creates discipline entities and randomly distributes them among teachers.
