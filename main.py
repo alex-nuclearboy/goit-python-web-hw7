@@ -6,7 +6,9 @@ from models import Group, Student, Teacher, Discipline
 # Create a session
 SessionLocal = sessionmaker(bind=engine)
 
-# Setup argparse
+# Setup command-line argument parsing
+# This CLI supports CRUD operations on the university database,
+# allowing manipulation of Groups, Students, Teachers, and Disciplines.
 parser = argparse.ArgumentParser(
     prog='UneversityDatabase',
     description="CLI for CRUD operations on the database.")
@@ -25,6 +27,14 @@ args = parser.parse_args()
 
 
 def create_record(session, model, name):
+    """
+    Create a new record in the database based on the model type.
+
+    Parameters:
+        session: The database session.
+        model: The model type to create (Group, Student, Teacher, Discipline).
+        name: The name of the record to create.
+    """
     if model == "Student":
         record = Student(name=name)
     elif model == "Teacher":
@@ -40,6 +50,13 @@ def create_record(session, model, name):
 
 
 def list_records(session, model):
+    """
+    List all records of a specific model in the database.
+
+    Parameters:
+        session: The database session.
+        model: The model type to list (Group, Student, Teacher, Discipline).
+    """
     if model == "Teacher":
         records = session.query(Teacher).all()
     elif model == "Group":
@@ -54,6 +71,15 @@ def list_records(session, model):
 
 
 def update_record(session, model, record_id, name):
+    """
+    Update an existing record's name in the database.
+
+    Parameters:
+        session: The database session.
+        model: The model type of the record to update.
+        record_id: The ID of the record to update.
+        name: The new name for the record.
+    """
     if model == "Teacher":
         record = session.query(Teacher).filter(Teacher.id == record_id).first()
     elif model == "Group":
@@ -73,6 +99,14 @@ def update_record(session, model, record_id, name):
 
 
 def remove_record(session, model, record_id):
+    """
+    Remove a record from the database.
+
+    Parameters:
+        session: The database session.
+        model: The model type of the record to remove.
+        record_id: The ID of the record to remove.
+    """
     if model == "Teacher":
         record = session.query(Teacher).filter(Teacher.id == record_id).first()
     elif model == "Group":
@@ -92,6 +126,9 @@ def remove_record(session, model, record_id):
 
 
 def main():
+    """
+    Main function to parse arguments and perform the requested CRUD operation.
+    """
     db = SessionLocal()
 
     if args.action == "create" and args.name:
