@@ -1,4 +1,4 @@
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, and_
 from connect_db import session
 from models import Group, Student, Grade, Discipline, Teacher
 
@@ -9,8 +9,10 @@ def select_1():
     """
     query = session.query(
         Student.name,
-        func.round(func.avg(Grade.grade), 2).label('average_grade')
-    ).join(Grade).group_by(Student.id)\
+        func.round(func.avg(Grade.grade), 2).label('average_grade'))\
+        .select_from(Grade)\
+        .join(Student)\
+        .group_by(Student.id)\
         .order_by(desc('average_grade'))\
         .limit(5)
     return query.all()
@@ -20,18 +22,19 @@ def select_2():
     """
     Find the student with the highest average grade in a specific subject.
     """
-    discipline_id = 1  # Example discipline ID
+    discipline_id = 5  # Example discipline ID
     query = session.query(
         Discipline.name,
         Student.name,
-        func.round(func.avg(Grade.grade), 2).label('average_grade')
-    ).join(Student.grades)\
-        .join(Grade.discipline)\
+        func.round(func.avg(Grade.grade), 2).label('average_grade'))\
+        .select_from(Grade)\
+        .join(Student)\
+        .join(Discipline)\
         .filter(Discipline.id == discipline_id)\
         .group_by(Student.id)\
-        .order_by(desc(func.avg(Grade.grade)))\
-        .first()
-    return query
+        .order_by(desc("average_grade"))\
+        .limit(1)
+    return query.all()
 
 
 def select_3():
@@ -42,10 +45,14 @@ def select_3():
     query = session.query(
         Discipline.name,
         Group.name,
-        func.round(func.avg(Grade.grade), 2).label('average_grade')
-    ).join(Grade).join(Student).join(Group)\
+        func.round(func.avg(Grade.grade), 2).label('average_grade'))\
+        .select_from(Grade)\
+        .join(Student)\
+        .join(Discipline)\
+        .join(Group)\
         .filter(Discipline.id == discipline_id)\
-        .group_by(Group.id).order_by(desc('average_grade'))
+        .group_by(Discipline.id, Group.id)\
+        .order_by(desc('average_grade'))
     return query.all()
 
 
@@ -54,8 +61,8 @@ def select_4():
     Find the average grade across all grades.
     """
     query = session.query(
-        func.round(func.avg(Grade.grade), 2).label('average_grade')
-    )
+        func.round(func.avg(Grade.grade), 2).label('average_grade'))\
+        .select_from(Grade)
     return query.scalar()
 
 
@@ -63,11 +70,13 @@ def select_5():
     """
     Find which courses a specific teacher teaches.
     """
-    teacher_id = 5  # Example teacher ID
+    teacher_id = 1  # Example teacher ID
     query = session.query(
         Teacher.name,
-        Discipline.name
-    ).join(Discipline).filter(Teacher.id == teacher_id)
+        Discipline.name)\
+        .select_from(Teacher)\
+        .join(Discipline)\
+        .filter(Teacher.id == teacher_id)
     return query.all()
 
 
@@ -78,8 +87,11 @@ def select_6():
     group_id = 2  # Example group ID
     query = session.query(
         Group.name,
-        Student.name
-    ).join(Student).filter(Group.id == group_id)
+        Student.name)\
+        .select_from(Student)\
+        .join(Group)\
+        .filter(Group.id == group_id)\
+        .order_by(Student.name)
     return query.all()
 
 
@@ -90,16 +102,17 @@ def select_7():
     discipline_id = 5  # Example discipline ID
     group_id = 1  # Example group ID
     query = session.query(
-        Discipline.name,
         Group.name,
+        Discipline.name,
         Student.name,
         Grade.grade,
-        Grade.grade_date
-    ).select_from(Grade)\
-        .join(Grade.student)\
-        .join(Student.group)\
-        .join(Grade.discipline)\
-        .filter(Discipline.id == discipline_id, Group.id == group_id)
+        Grade.grade_date)\
+        .select_from(Student)\
+        .join(Group)\
+        .join(Grade)\
+        .join(Discipline)\
+        .filter(and_(Discipline.id == discipline_id, Group.id == group_id))\
+        .order_by(Student.name, Grade.grade)
     return query.all()
 
 
@@ -107,21 +120,17 @@ def select_8():
     """
     Find the average grade given by a specific teacher across their subjects.
     """
-    teacher_id = 1  # Example teacher ID
+    teacher_id = 3  # Example teacher ID
     query = session.query(
         Teacher.name,
-        func.round(func.avg(Grade.grade), 2).label('average_grade')
-    ).join(Discipline, Discipline.teacher_id == Teacher.id)\
-        .join(Grade, Grade.discipline_id == Discipline.id)\
+        func.round(func.avg(Grade.grade), 2).label('average_grade'))\
+        .select_from(Teacher)\
+        .join(Discipline)\
+        .join(Grade)\
         .filter(Teacher.id == teacher_id)\
-        .group_by(Teacher.id)  # Group by Teacher ID for accurate aggregation
+        .group_by(Teacher.id)
 
-    result = query.one_or_none()
-
-    if result:
-        return f'{result[0]} - Average Grade: {result[1]}'
-    else:
-        return 'No data found'
+    return query.all()
 
 
 def select_9():
@@ -131,12 +140,12 @@ def select_9():
     student_id = 10  # Example student ID
     query = session.query(
         Student.name,
-        Discipline.name
-    ).select_from(Student)\
-        .join(Grade, Student.id == Grade.student_id)\
-        .join(Discipline, Grade.discipline_id == Discipline.id)\
+        Discipline.name)\
+        .select_from(Grade)\
+        .join(Student)\
+        .join(Discipline)\
         .filter(Student.id == student_id)\
-        .distinct()
+        .group_by(Student.name, Discipline.id)
 
     return query.all()
 
@@ -150,13 +159,13 @@ def select_10():
     query = session.query(
         Student.name.label("student_name"),
         Teacher.name.label("teacher_name"),
-        Discipline.name.label("discipline_name")
-    ).select_from(Grade)\
-        .join(Student, Grade.student_id == Student.id)\
-        .join(Discipline, Grade.discipline_id == Discipline.id)\
-        .join(Teacher, Discipline.teacher_id == Teacher.id)\
+        Discipline.name.label("discipline_name"))\
+        .select_from(Grade)\
+        .join(Student)\
+        .join(Discipline)\
+        .join(Teacher)\
         .filter(Student.id == student_id, Teacher.id == teacher_id)\
-        .distinct()
+        .group_by(Student.id, Teacher.id, Discipline.id)
 
     return query.all()
 
@@ -170,13 +179,13 @@ def select_11():
     query = session.query(
         Teacher.name.label("teacher_name"),
         Student.name.label("student_name"),
-        func.round(func.avg(Grade.grade), 2).label("average_grade")
-    ).select_from(Grade)\
-        .join(Student, Grade.student_id == Student.id)\
-        .join(Discipline, Grade.discipline_id == Discipline.id)\
-        .join(Teacher, Discipline.teacher_id == Teacher.id)\
+        func.round(func.avg(Grade.grade), 2).label("average_grade"))\
+        .select_from(Grade)\
+        .join(Student)\
+        .join(Discipline)\
+        .join(Teacher)\
         .filter(Student.id == student_id, Teacher.id == teacher_id)\
-        .group_by(Teacher.name, Student.name)
+        .group_by(Teacher.id, Student.id)
 
     return query.all()
 
@@ -191,12 +200,13 @@ def select_12():
     # Find the latest grade_date for the specified group and discipline
     latest_grade_date_subquery = session.query(
         Grade.student_id,
-        func.max(Grade.grade_date).label('latest_grade_date')
-    ).join(Student, Grade.student_id == Student.id)\
-     .join(Group, Student.group_id == Group.id)\
-     .join(Discipline, Grade.discipline_id == Discipline.id)\
-     .filter(Group.id == group_id, Discipline.id == discipline_id)\
-     .group_by(Grade.student_id).subquery()
+        func.max(Grade.grade_date).label('latest_grade_date'))\
+        .select_from(Grade)\
+        .join(Student)\
+        .join(Group)\
+        .join(Discipline)\
+        .filter(Group.id == group_id, Discipline.id == discipline_id)\
+        .group_by(Grade.student_id).subquery()
 
     # Use the subquery to find grades of students on the latest grade_date
     query = session.query(
@@ -204,18 +214,18 @@ def select_12():
         Discipline.name.label("discipline_name"),
         Student.name.label("student_name"),
         Grade.grade,
-        latest_grade_date_subquery.c.latest_grade_date
-    ).join(Student, Grade.student_id == Student.id)\
-     .join(Group, Student.group_id == Group.id)\
-     .join(Discipline, Grade.discipline_id == Discipline.id)\
-     .join(
-         latest_grade_date_subquery,
-         Grade.student_id == latest_grade_date_subquery.c.student_id)\
-     .filter(
-         Group.id == group_id,
-         Discipline.id == discipline_id,
-         Grade.grade_date == latest_grade_date_subquery.c.latest_grade_date
-     )
+        latest_grade_date_subquery.c.latest_grade_date)\
+        .select_from(Grade)\
+        .join(Student)\
+        .join(Group)\
+        .join(Discipline)\
+        .join(latest_grade_date_subquery)\
+        .filter(
+            Group.id == group_id,
+            Discipline.id == discipline_id,
+            Grade.grade_date == latest_grade_date_subquery.c.latest_grade_date
+        )\
+        .order_by(Group.id, Discipline.id, Student.name, Grade.grade_date)
 
     return query.all()
 
