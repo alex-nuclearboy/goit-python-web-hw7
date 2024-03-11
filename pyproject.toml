@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "goit-python-web-hw7"
-version = "0.1.0"
-description = "Educational project on working with a database"
-authors = ["Your Name <you@example.com>"]
+version = "1.0.0"
+description = "This project implements a simplified database schema designed for educational management purposes. It models the relationships between groups, students, teachers, disciplines (courses), and grades to practice database design, automated data generation, and query execution for various data retrieval tasks."
+authors = ["Alex Khreptak <alex.nuclearboy@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 
