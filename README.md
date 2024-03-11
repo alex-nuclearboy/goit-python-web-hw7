@@ -102,9 +102,9 @@ The project includes a CLI program for direct CRUD operations on the database.
 
 - **Unix/Linux/macOS:**
 ```bash
-python3 main.py --action create -m Teacher --name 'Boris Jonson' # Create a teacher
+python3 main.py --action create -m Teacher -n 'Boris Jonson' # Create a teacher
 python3 main.py --action list -m Teacher # List all teachers
-python3 main.py --action update -m Teacher --id 3 --name 'Andry Bezos' # Update a teacher with id=3
+python3 main.py --action update -m Teacher --id 3 -n 'Andry Bezos' # Update a teacher with id=3
 python3 main.py --action remove -m Teacher --id 3 # Remove a teacher with id=3
 ```
 
