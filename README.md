@@ -18,13 +18,43 @@ For database schema evolution, the project uses `alembic`. This tool facilitates
 
 ## Data Generation and Seeding
 
-This project uses the `Faker` library to fill the database with fictitious but realistic-looking data. While the names of students and teachers are randomly generated to add variety, the names of the groups and the disciplines are already set within the program and don't change. 
+Data generation leverages the `Faker` library, creating fictitious but realistic data for students and teachers. Group and discipline names are predefined. The `seed.py` script, using `SQLAlchemy` sessions, seeds the database efficiently with 50 students across 3 groups, 5 teachers, 8 disciplines, and assigns up to 20 grades per student.
 
-Using the `seed.py` script, the database is seeded with this data. The script uses `SQLAlchemy` sessions for efficient data insertion, ensuring quick and effective database population.
+## Project Installation and Usage Guide
 
-The setup includes 50 students spread out over 3 fixed groups, with 5 teachers, 8 predefined disciplines, and each student getting up to 20 grades across all these disciplines.
+To set up and use this project, follow the steps below to clone the repository, set up the environment, and start interacting with the database.
 
-## Queries
+#### Setting Up the Project
+
+Clone the repository and navigate to its directory:
+```bash
+git clone https://github.com/alex-nuclearboy/goit-python-web-hw7.git
+cd goit-python-web-hw7
+```
+Activate the Poetry environment to ensure all commands run within this isolated environment:
+```bash
+poetry shell
+```
+#### Database Setup
+
+Generate the database schema with `Alembic`:
+```bash
+alembic upgrade head
+```
+
+Populate the database tables with data using the provided seeding script.
+
+- **Unix/Linux/macOS:**
+```bash
+python3 seed.py
+```
+
+- **Windows:**
+```powershell
+py seed.py
+```
+
+#### Database Queries
 
 The `my_select.py` script is provided for executing various queries to retrieve information, such as:
 
@@ -41,63 +71,28 @@ The `my_select.py` script is provided for executing various queries to retrieve 
 - Calculating the average grade a teacher awards to a specific student.
 - Finding grades awarded in the last class for a discipline within a specific group.
 
-## Project Installation and Usage Guide
+To execute these queries, use:
 
-To set up and use this project, follow the steps below to clone the repository, set up the environment, and start interacting with the database.
+- **Unix/Linux/macOS:**
+```bash
+python3 my_select.py
+```
 
-#### Setting Up the Project
-
-Clone the repository to the local machine and navigate to the project directory:
-
-    git clone https://github.com/alex-nuclearboy/goit-python-web-hw7.git
-    cd goit-python-web-hw7
-
-Initialise a Poetry virtual environment for dependency management:
-
-    poetry init
-
-Import dependencies listed in requirements.txt. The command varies slightly depending on your operating system.
-
-**On Unix/Linux:**
-
-    poetry add $(cat requirements.txt | tr '\n' ' ')
-
-**On Windows (PowerShell):**
-
-    Get-Content requirements.txt | ForEach-Object { poetry add $_ }
-
-Once dependencies are installed, activate the Poetry environment to ensure all commands run within this isolated environment.
-
-    poetry shell
-
-#### Database Setup and Interaction
-
-Use Alembic to apply migrations and generate the database schema:
-
-    alembic upgrade head
-
-Populate the database tables with initial data using the provided seeding script:
-
-    python3 seed.py  # for Unix/Linux
-
-    py seed.py  # for Windows
-
-Execute predefined queries to analyse the data:
-
-    python3 my_select.py  # for Unix/Linux
-
-    py my_select.py  # for Windows
+- **Windows:**
+```powershell
+py my_select.py
+```
 
 ## CLI for CRUD operation
 
-This project also features a CLI program for CRUD operations with the database directly from the command line.
+The project includes a CLI program for direct CRUD operations on the database.
 
 #### Command Structure:
 
-- Use the `--action` command or its shorthand `-a` for CRUD operations.
-- Use the `--model` command or `-m` to specify the model to operate on. 
-- Use the `--name` command or `-n` to provide name for creating or updating a record.
-- Use the `--id` command  to specify the ID of the record to update or remove.
+- Perform CRUD operations using `--action` or `-a`.
+- Specify the model with `--model` or `-m`.
+- Provide a name with `--name` or `-n` for creating or updating a record.
+- Specify a record's ID with `--id` to update or remove it.
 
 **Supported Operations:** `create`, `list`, `update`, `remove`.
 
@@ -105,16 +100,18 @@ This project also features a CLI program for CRUD operations with the database d
 
 #### Examples:
 
-- For Unix/Linux:
+- **Unix/Linux/macOS:**
+```bash
+python3 main.py --action create -m Teacher --name 'Boris Jonson' # Create a teacher
+python3 main.py --action list -m Teacher # List all teachers
+python3 main.py --action update -m Teacher --id 3 --name 'Andry Bezos' # Update a teacher with id=3
+python3 main.py --action remove -m Teacher --id 3 # Remove a teacher with id=3
+```
 
-        python3 main.py --action create -m Teacher --name 'Boris Jonson' # Create a teacher
-        python3 main.py --action list -m Teacher # List all teachers
-        python3 main.py --action update -m Teacher --id 3 --name 'Andry Bezos' # Update a teacher with id=3
-        python3 main.py --action remove -m Teacher --id 3 # Remove a teacher with id=3
-
-- For Windows:
-
-        py main.py --action create -m Teacher -n 'Boris Jonson' # Create a teacher
-        py main.py --action list -m Teacher # List all teachers
-        py main.py --action update -m Teacher --id 3 -n 'Andry Bezos' # Update a teacher with id=3
-        py main.py --action remove -m Teacher --id 3 # Remove a teacher with id=3
+- **Windows:**
+```powershell
+py main.py --action create -m Teacher -n 'Boris Jonson' # Create a teacher
+py main.py --action list -m Teacher # List all teachers
+py main.py --action update -m Teacher --id 3 -n 'Andry Bezos' # Update a teacher with id=3
+py main.py --action remove -m Teacher --id 3 # Remove a teacher with id=3
+```
