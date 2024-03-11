@@ -1,12 +1,14 @@
 import argparse
 from sqlalchemy.orm import sessionmaker
-from models import engine, Group, Student, Teacher, Discipline
+from connect_db import engine
+from models import Group, Student, Teacher, Discipline
 
 # Create a session
 SessionLocal = sessionmaker(bind=engine)
 
 # Setup argparse
 parser = argparse.ArgumentParser(
+    prog='UneversityDatabase',
     description="CLI for CRUD operations on the database.")
 parser.add_argument("-a", "--action", choices=[
     "create", "list", "update", "remove"],
@@ -24,13 +26,13 @@ args = parser.parse_args()
 
 def create_record(session, model, name):
     if model == "Student":
-        record = Student(full_name=name)
+        record = Student(name=name)
     elif model == "Teacher":
-        record = Teacher(full_name=name)
+        record = Teacher(name=name)
     elif model == "Group":
-        record = Group(group_name=name)
+        record = Group(name=name)
     elif model == "Discipline":
-        record = Discipline(discipline_name=name)
+        record = Discipline(name=name)
 
     session.add(record)
     session.commit()
